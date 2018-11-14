@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@ang
 import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 
 import { FontTexture } from "../font-texture";
-import { Particles } from "../particles";
+import { Particles, UniformValue } from "../particles";
 import { DEFAULT_POSITION } from "../shaders";
 
 @Component( {
@@ -58,6 +58,10 @@ export class ParticlesComponent implements OnInit, OnDestroy {
 
     ngOnDestroy() {
         cancelAnimationFrame(this.timeout);
+    }
+
+    setUniforms( value: UniformValue ) {
+        this.particles.updateUniform( "mouse", value );
     }
 
     private render() {

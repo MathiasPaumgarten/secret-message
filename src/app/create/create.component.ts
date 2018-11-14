@@ -1,13 +1,16 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy } from "@angular/core";
+import { ParticlesComponent } from "../gl/particles/particles.component";
 
 @Component( {
     selector: "app-create",
     templateUrl: "./create.component.html",
     styleUrls: [ "./create.component.scss" ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 } )
 export class CreateComponent implements OnInit {
-    hasFocus = false;
     velocityShader = VELOCITY;
+
+    @ViewChild( ParticlesComponent ) particles: ParticlesComponent;
 
     private readonly FONT_SIZE = 40;
     private readonly LINE_HEIGHT = 60;
@@ -50,7 +53,6 @@ export class CreateComponent implements OnInit {
             this.context.fillText( word, 10, window.innerHeight / 2 - offset * this.LINE_HEIGHT + i * this.LINE_HEIGHT );
         } );
     }
-
 }
 
 const VELOCITY = `
