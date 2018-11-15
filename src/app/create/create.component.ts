@@ -9,8 +9,8 @@ import { ParticlesComponent } from "../gl/particles/particles.component";
 } )
 export class CreateComponent implements OnInit {
     velocityShader = VELOCITY;
-
-    @ViewChild( ParticlesComponent ) particles: ParticlesComponent;
+    glWidth = 512;
+    glHeight = 512;
 
     private readonly FONT_SIZE = 40;
     private readonly LINE_HEIGHT = 60;
@@ -19,12 +19,14 @@ export class CreateComponent implements OnInit {
     private context: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
 
-    @ViewChild( "input" ) private inputElement: ElementRef<HTMLInputElement>;
+    @ViewChild( ParticlesComponent ) private particles?: ParticlesComponent;
+    @ViewChild( "input" ) private inputElement?: ElementRef<HTMLInputElement>;
 
     @HostListener( "window:resize" )
     private onResize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.glWidth = this.canvas.width = window.innerWidth;
+        this.glHeight = this.canvas.height = window.innerHeight;
+
         this.renderCanvas();
     }
 

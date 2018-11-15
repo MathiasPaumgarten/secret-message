@@ -1,18 +1,39 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import {
+    ChangeDetectionStrategy,
+    Component,
+    ElementRef,
+    HostListener,
+    Input,
+    OnChanges,
+    OnDestroy,
+    OnInit,
+    ViewChild,
+    SimpleChanges,
+} from "@angular/core";
 import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 
 import { FontTexture } from "../font-texture";
 import { Particles, UniformValue } from "../particles";
 import { DEFAULT_POSITION } from "../shaders";
 
+/**
+ * Wrapper component that renders the particle filter. It contains a THREE scene and handles the shader-pass
+ * necessary. Internally, the particle position is along a coordinate system that goes from -100 to 100. This is
+ * due to the distance from the camera.
+ * It is scaled to fill the view port. All position uniforms have to consider that depending on the screen layout,
+ * there might be letter boxing either vertially or horizontally.
+ */
 @Component( {
-  selector: "app-particles",
-  templateUrl: "./particles.component.html",
-  styleUrls: [ "./particles.component.scss" ],
+    selector: "app-particles",
+    templateUrl: "./particles.component.html",
+    styleUrls: [ "./particles.component.scss" ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 } )
-export class ParticlesComponent implements OnInit, OnDestroy {
+export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
 
     @Input() velocity?: string;
+    @Input() width = 1024;
+    @Input() height = 1024;
 
     @ViewChild( "canvas" ) canvas: ElementRef<HTMLCanvasElement>;
 
@@ -21,6 +42,16 @@ export class ParticlesComponent implements OnInit, OnDestroy {
     private scene: Scene;
     private timeout: number;
     private particles: Particles;
+
+    @HostListener( "window:mousemove", [ "$event" ] )
+    private onMouseMove( event: MouseEvent ) {
+        if ( ! this.particles ) return;
+
+        this.setUniforms( "mouse", [
+            ( ( event.pageX / window.innerWidth * 2.0 ) - 1.0 ) * -100,
+            ( ( event.pageY / window.innerHeight * 2.0 ) - 1.0 ) * -100,
+        ] );
+    }
 
     ngOnInit() {
         if ( !this.velocity ) {
@@ -31,12 +62,15 @@ export class ParticlesComponent implements OnInit, OnDestroy {
         texture.write( "Everybody\npoop" );
 
         this.renderer = new WebGLRenderer( { canvas: this.canvas.nativeElement, alpha: false } );
-        this.renderer.setSize( 1024, 1024 );
+        this.renderer.setSize( this.width, this.height );
         this.renderer.setClearColor( 0 );
-        this.camera = new PerspectiveCamera( 90, 1, 1, 10000 );
+
+        this.camera = new PerspectiveCamera( 90, this.width / this.height, 1, 10000 );
         this.camera.position.set( 0, 0, -100 );
         this.camera.lookAt( new Vector3() );
+
         this.scene = new Scene();
+
         this.particles = new Particles( 128, {
             renderer: this.renderer,
 
@@ -47,7 +81,9 @@ export class ParticlesComponent implements OnInit, OnDestroy {
             },
 
             positionShader: DEFAULT_POSITION,
-            positionUniforms: {}
+            positionUniforms: {
+                mouse: [ 0, 0 ]
+            }
         } );
 
         this.scene.add( this.particles );
@@ -56,12 +92,23 @@ export class ParticlesComponent implements OnInit, OnDestroy {
         this.render();
     }
 
+    ngOnChanges( changes: SimpleChanges ) {
+        if ( changes[ "width" ] || changes[ "height" ] ) {
+            if ( !this.camera ) return;
+
+            this.camera.aspect = this.width / this.height;
+            this.camera.updateProjectionMatrix();
+
+            this.renderer.setSize( this.width, this.height );
+        }
+    }
+
     ngOnDestroy() {
         cancelAnimationFrame(this.timeout);
     }
 
-    setUniforms( value: UniformValue ) {
-        this.particles.updateUniform( "mouse", value );
+    setUniforms( name: string, value: UniformValue ) {
+        this.particles.updateUniform( name, value );
     }
 
     private render() {

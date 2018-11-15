@@ -34,7 +34,6 @@ export class FontTexture {
             this.context.fillText( word, 10, this.SIZE / 2 - offset * this.LINE_HEIGHT + i * this.LINE_HEIGHT );
         } );
 
-
         this.texture.needsUpdate = true;
     }
 
