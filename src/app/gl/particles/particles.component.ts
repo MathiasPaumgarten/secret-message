@@ -34,6 +34,7 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
     @Input() velocity?: string;
     @Input() width = 1024;
     @Input() height = 1024;
+    @Input() message = "";
 
     @ViewChild( "canvas" ) canvas: ElementRef<HTMLCanvasElement>;
 
@@ -47,10 +48,10 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
     private onMouseMove( event: MouseEvent ) {
         if ( ! this.particles ) return;
 
-        this.setUniforms( "mouse", [
-            ( ( event.pageX / window.innerWidth * 2.0 ) - 1.0 ) * -100,
-            ( ( event.pageY / window.innerHeight * 2.0 ) - 1.0 ) * -100,
-        ] );
+        this.particles.updateUniform(
+            "mouse",
+            this.transformPosition( event.pageX / window.innerWidth, event.pageY / window.innerHeight )
+        );
     }
 
     ngOnInit() {
@@ -59,13 +60,14 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
         }
 
         const texture = new FontTexture();
-        texture.write( "Everybody\npoop" );
+        texture.write( this.message );
 
         this.renderer = new WebGLRenderer( { canvas: this.canvas.nativeElement, alpha: false } );
         this.renderer.setSize( this.width, this.height );
         this.renderer.setClearColor( 0 );
 
-        this.camera = new PerspectiveCamera( 90, this.width / this.height, 1, 10000 );
+        // TODO: change z distance from the center to 1 so that all -100 to 100 calculations can be changed to -1 to 1.
+        this.camera = new PerspectiveCamera( 90, this.width / this.height, 1, 1000 );
         this.camera.position.set( 0, 0, -100 );
         this.camera.lookAt( new Vector3() );
 
@@ -76,8 +78,8 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
 
             velocityShader: this.velocity,
             velocityUniforms: {
-                mouse: [ 0, 0 ],
-                font: texture.getTexture(),
+                mouse: [ -1000, -1000 ],
+                fontTexture: texture.getTexture(),
             },
 
             positionShader: DEFAULT_POSITION,
@@ -94,27 +96,32 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
 
     ngOnChanges( changes: SimpleChanges ) {
         if ( changes[ "width" ] || changes[ "height" ] ) {
-            if ( !this.camera ) return;
+            if ( this.camera ) {
+                this.camera.aspect = this.width / this.height;
+                this.camera.updateProjectionMatrix();
 
-            this.camera.aspect = this.width / this.height;
-            this.camera.updateProjectionMatrix();
-
-            this.renderer.setSize( this.width, this.height );
+                this.renderer.setSize( this.width, this.height );
+            }
         }
     }
 
     ngOnDestroy() {
-        cancelAnimationFrame(this.timeout);
-    }
-
-    setUniforms( name: string, value: UniformValue ) {
-        this.particles.updateUniform( name, value );
+        cancelAnimationFrame( this.timeout );
     }
 
     private render() {
         this.particles.update( Date.now() );
         this.renderer.render( this.scene, this.camera );
-        this.timeout = requestAnimationFrame(this.render);
+        this.timeout = requestAnimationFrame( this.render );
     }
 
+    /**
+     * Projects coordinates from 0 - 1 onto -100 to 100 scaled to match screen size to shader position.
+     */
+    private transformPosition( x: number, y: number ): [ number, number ] {
+        return [
+            ( ( x * 2.0 ) - 1.0 ) * -100 * ( this.width / this.height ),
+            ( ( y * 2.0 ) - 1.0 ) * -100,
+        ];
+    }
 }

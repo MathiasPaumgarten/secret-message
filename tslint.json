@@ -90,6 +90,7 @@
       "double"
     ],
     "radix": true,
+    "space-within-parens": [ true, 1 ],
     "semicolon": [
       true,
       "always"
