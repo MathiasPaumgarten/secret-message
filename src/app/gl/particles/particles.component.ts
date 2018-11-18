@@ -38,6 +38,12 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
 
     @ViewChild( "canvas" ) canvas: ElementRef<HTMLCanvasElement>;
 
+    get canvasOffset() {
+        return `translateY( ${ - this.offset }px )`;
+    }
+
+    private offset = 0;
+    private canvasSize = Math.max( window.innerWidth, window.innerHeight );
     private renderer: WebGLRenderer;
     private camera: PerspectiveCamera;
     private scene: Scene;
@@ -50,7 +56,10 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
 
         this.particles.updateUniform(
             "mouse",
-            this.transformPosition( event.pageX / window.innerWidth, event.pageY / window.innerHeight )
+            this.transformPosition(
+                event.pageX / this.canvasSize,
+                ( event.pageY + this.offset ) / this.canvasSize,
+            )
         );
     }
 
@@ -67,7 +76,7 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
         this.renderer.setClearColor( 0 );
 
         // TODO: change z distance from the center to 1 so that all -100 to 100 calculations can be changed to -1 to 1.
-        this.camera = new PerspectiveCamera( 90, this.width / this.height, 1, 1000 );
+        this.camera = new PerspectiveCamera( 90, 1, 1, 1000 );
         this.camera.position.set( 0, 0, -100 );
         this.camera.lookAt( new Vector3() );
 
@@ -91,22 +100,28 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
         this.scene.add( this.particles );
 
         this.render = this.render.bind( this );
+        this.calculateSize();
         this.render();
     }
 
     ngOnChanges( changes: SimpleChanges ) {
         if ( changes[ "width" ] || changes[ "height" ] ) {
             if ( this.camera ) {
-                this.camera.aspect = this.width / this.height;
-                this.camera.updateProjectionMatrix();
-
-                this.renderer.setSize( this.width, this.height );
+                this.calculateSize();
             }
         }
     }
 
     ngOnDestroy() {
         cancelAnimationFrame( this.timeout );
+    }
+
+    private calculateSize() {
+        this.canvasSize = Math.max( this.width, this.height );
+        this.offset = ( this.canvasSize - this.height ) / 2;
+
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize( this.canvasSize, this.canvasSize );
     }
 
     private render() {
@@ -120,7 +135,7 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
      */
     private transformPosition( x: number, y: number ): [ number, number ] {
         return [
-            ( ( x * 2.0 ) - 1.0 ) * -100 * ( this.width / this.height ),
+            ( ( x * 2.0 ) - 1.0 ) * -100,
             ( ( y * 2.0 ) - 1.0 ) * -100,
         ];
     }

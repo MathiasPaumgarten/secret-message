@@ -1,1 +1,5 @@
-<canvas #canvas></canvas>
+<div class="container"
+     [style.width.px]="width"
+     [style.height.px]="height">
+    <canvas #canvas [style.transform]="canvasOffset"></canvas>
+</div>
