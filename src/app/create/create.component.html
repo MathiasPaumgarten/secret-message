@@ -1,8 +1,9 @@
 <app-particles [velocity]="velocityShader"
                [width]="glWidth"
                [height]="glHeight"
-               message="shoes"></app-particles>
+               [message]="text"></app-particles>
 
 <input #input
        class="hidden-input"
+       focus="true"
        (input)="onInputUpdate( $event.target.value )" />

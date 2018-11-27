@@ -18,11 +18,11 @@ export class FontTexture {
         this.texture = new CanvasTexture( this.canvas );
         this.texture.minFilter = LinearFilter;
 
-        this.context.fillStyle = "rgba( 0, 0, 0, 1 )";
-        this.context.fillRect( 0, 0, this.SIZE, this.SIZE );
+        this.clear();
     }
 
     write( value: string ): void {
+        this.clear();
         this.context.fillStyle = "rgba( 255, 0, 0, 1 )";
         this.context.font = `bold ${ this.FONT_SIZE }px Arial`;
         this.context.textBaseline = "middle";
@@ -44,5 +44,10 @@ export class FontTexture {
 
     getElement(): HTMLCanvasElement {
         return this.canvas;
+    }
+
+    clear() {
+        this.context.fillStyle = "rgba( 0, 0, 0, 1 )";
+        this.context.fillRect( 0, 0, this.SIZE, this.SIZE );
     }
 }

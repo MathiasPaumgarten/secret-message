@@ -13,7 +13,7 @@ import {
 import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 
 import { FontTexture } from "../font-texture";
-import { Particles, UniformValue } from "../particles";
+import { Particles } from "../particles";
 import { DEFAULT_POSITION } from "../shaders";
 
 /**
@@ -49,6 +49,7 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
     private scene: Scene;
     private timeout: number;
     private particles: Particles;
+    private texture = new FontTexture();
 
     @HostListener( "window:mousemove", [ "$event" ] )
     private onMouseMove( event: MouseEvent ) {
@@ -68,8 +69,7 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
             throw new Error( "ParticlesDirective must be given a velocity shader." );
         }
 
-        const texture = new FontTexture();
-        texture.write( this.message );
+        this.texture.write( this.message );
 
         this.renderer = new WebGLRenderer( { canvas: this.canvas.nativeElement, alpha: false } );
         this.renderer.setSize( this.width, this.height );
@@ -88,7 +88,7 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
             velocityShader: this.velocity,
             velocityUniforms: {
                 mouse: [ -1000, -1000 ],
-                fontTexture: texture.getTexture(),
+                fontTexture: this.texture.getTexture(),
             },
 
             positionShader: DEFAULT_POSITION,
@@ -110,10 +110,19 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
                 this.calculateSize();
             }
         }
+
+        if ( changes[ "message"] ) {
+            this.texture.write( this.message );
+        }
     }
 
     ngOnDestroy() {
         cancelAnimationFrame( this.timeout );
+    }
+
+    /** Resets all particles back to the starting point. */
+    reset() {
+        this.particles.reset();
     }
 
     private calculateSize() {

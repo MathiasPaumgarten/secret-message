@@ -11,11 +11,11 @@ export class CreateComponent implements OnInit {
     velocityShader = VELOCITY;
     glWidth = 512;
     glHeight = 512;
+    text = "";
 
     private readonly FONT_SIZE = 40;
     private readonly LINE_HEIGHT = 60;
 
-    private text = "";
     private context: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
 
@@ -30,6 +30,11 @@ export class CreateComponent implements OnInit {
         this.renderCanvas();
     }
 
+    @HostListener( "click" )
+    private onClicked() {
+        this.inputElement.nativeElement.focus();
+    }
+
     ngOnInit() {
         this.inputElement.nativeElement.focus();
         this.canvas = document.createElement( "canvas" );
@@ -40,6 +45,7 @@ export class CreateComponent implements OnInit {
     onInputUpdate( value: string ) {
         this.text = value;
         this.renderCanvas();
+        this.particles.reset();
     }
 
     private renderCanvas() {
