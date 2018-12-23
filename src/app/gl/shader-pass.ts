@@ -67,6 +67,7 @@ export class ShaderPass {
     private latest: number;
     private renderer: WebGLRenderer;
     private size: number;
+    private override?: Texture;
     private readonly scene = new Scene();
 
     constructor( options: ShaderPassOptions ) {
@@ -120,6 +121,14 @@ export class ShaderPass {
         }
     }
 
+    setValues( values: number[] ) {
+        if ( values.length !== this.size * this.size * 4 ) {
+            throw new Error( "Not the correct amount of values. 4 per pixel of particle field." );
+        }
+
+        this.override = createTexture( this.size, this.size, values );
+    }
+
     setUniforms( uniforms: { [ key: string ]: any } ): void {
         for ( const key in uniforms ) {
             ( this.meshes[ this.current ].material as ShaderMaterial ).uniforms[ key ].value =
@@ -141,8 +150,9 @@ export class ShaderPass {
         camera.layers.set( a + 1 );
 
         ( this.meshes[ a ].material as ShaderMaterial ).uniforms[ this.name ].value =
-            this.renderTargets[ b ].texture;
+            this.override ? this.override : this.renderTargets[ b ].texture;
 
+        this.override = undefined;
         this.renderer.render( this.scene, camera, this.renderTargets[ a ] );
 
         this.latest = this.current;

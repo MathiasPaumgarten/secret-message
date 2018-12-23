@@ -24,11 +24,29 @@ export interface ParticlesOptions {
     renderer: WebGLRenderer;
 }
 
+function generateRandomPosition( size: number ): number[] {
+    const array: number[] = [];
+
+    for ( let y = 0; y < size; y++ ) {
+        for ( let x = 0; x < size; x++ ) {
+            array.push(
+                random( -100, 100, true ),
+                random( -100, 100, true ),
+                1,
+                0,
+            );
+        }
+    }
+
+    return array;
+}
+
 export class Particles extends Points {
 
     private positionPass: ShaderPass;
     private velocityPass: ShaderPass;
     private latest: number;
+    private size: number;
 
     constructor( size: number, options: ParticlesOptions ) {
         const references = new Float32Array( size * size * 2 );
@@ -48,22 +66,7 @@ export class Particles extends Points {
             shader: options.positionShader,
             name: "positionTexture",
             size,
-            startValue: ( () => {
-                const array: number[] = [];
-
-                for ( let y = 0; y < size; y++ ) {
-                    for ( let x = 0; x < size; x++ ) {
-                        array.push(
-                            random( -100, 100, true ),
-                            random( -100, 100, true ),
-                            1,
-                            0,
-                        );
-                    }
-                }
-
-                return array;
-            } )(),
+            startValue: generateRandomPosition( size ),
             uniforms: {
                 ...options.positionUniforms,
                 velocityTexture: createTexture( size, size, 0 ),
@@ -112,9 +115,14 @@ export class Particles extends Points {
 
         this.frustumCulled = false;
         this.latest = 0;
+        this.size = size;
 
         this.positionPass = positionPass;
         this.velocityPass = velocityPass;
+    }
+
+    reset(): void {
+        this.positionPass.setValues( generateRandomPosition( this.size ) );
     }
 
     update( now: number ): void {

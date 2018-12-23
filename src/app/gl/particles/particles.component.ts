@@ -13,7 +13,7 @@ import {
 import { PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 
 import { FontTexture } from "../font-texture";
-import { Particles, UniformValue } from "../particles";
+import { Particles } from "../particles";
 import { DEFAULT_POSITION } from "../shaders";
 
 /**
