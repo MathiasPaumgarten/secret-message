@@ -103,7 +103,7 @@ export class ShaderPass {
             magFilter: NearestFilter,
         } ) );
 
-        let mesh;
+        let mesh: Mesh;
 
         this.meshes = [ 0, 1 ].map( ( index: number ) => {
             mesh = new Mesh( geometry, this.materials[ index ] );

@@ -49,6 +49,8 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
     private scene: Scene;
     private timeout: number;
     private particles: Particles;
+    private hasRespawnEnabled = false;
+    private texture: FontTexture;
 
     @HostListener( "window:mousemove", [ "$event" ] )
     private onMouseMove( event: MouseEvent ) {
@@ -68,8 +70,8 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
             throw new Error( "ParticlesDirective must be given a velocity shader." );
         }
 
-        const texture = new FontTexture();
-        texture.write( this.message );
+        this.texture = new FontTexture();
+        this.texture.write( this.message );
 
         this.renderer = new WebGLRenderer( { canvas: this.canvas.nativeElement, alpha: false } );
         this.renderer.setSize( this.width, this.height );
@@ -88,12 +90,14 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
             velocityShader: this.velocity,
             velocityUniforms: {
                 mouse: [ -1000, -1000 ],
-                fontTexture: texture.getTexture(),
+                fontTexture: this.texture.getTexture(),
+                respawn: 0,
             },
 
             positionShader: DEFAULT_POSITION,
             positionUniforms: {
-                mouse: [ 0, 0 ]
+                mouse: [ 0, 0 ],
+                respawn: 0,
             }
         } );
 
@@ -110,10 +114,19 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
                 this.calculateSize();
             }
         }
+
+        if ( changes[ "message" ] && this.texture ) {
+            this.texture.clean();
+            this.texture.write( this.message );
+        }
     }
 
     ngOnDestroy() {
         cancelAnimationFrame( this.timeout );
+    }
+
+    refall() {
+        this.hasRespawnEnabled = true;
     }
 
     private calculateSize() {
@@ -125,9 +138,18 @@ export class ParticlesComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     private render() {
+        if ( this.hasRespawnEnabled ) {
+            this.particles.updateUniform( "respawn", 1 );
+        }
+
         this.particles.update( Date.now() );
         this.renderer.render( this.scene, this.camera );
         this.timeout = requestAnimationFrame( this.render );
+
+        if ( this.hasRespawnEnabled ) {
+            this.hasRespawnEnabled = false;
+            this.particles.updateUniform( "respawn", 0 );
+        }
     }
 
     /**

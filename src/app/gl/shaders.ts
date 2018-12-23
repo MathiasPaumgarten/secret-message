@@ -31,6 +31,7 @@ export const PARTICLE_FRAGMENT = `
 export const DEFAULT_POSITION = `
     uniform sampler2D positionTexture;
     uniform sampler2D velocityTexture;
+    uniform float respawn;
 
     uniform float delta;
 
@@ -42,6 +43,10 @@ export const DEFAULT_POSITION = `
 
         position += velocity * delta;
 
-        gl_FragColor = vec4( max( vec3( -110 ), position ), 1.0 );
+        if ( respawn > 0.5 && position.y < -100.0 ) {
+            gl_FragColor = vec4( -100.0 + fract( position.x ) * 200.0 , 100.0 + fract( uv.y ) * 200.0, position.z, 1.0);
+        } else {
+            gl_FragColor = vec4( max( vec3( -110 ), position ), 1.0 );
+        }
     }
 `;

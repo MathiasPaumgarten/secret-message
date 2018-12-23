@@ -15,7 +15,7 @@ export class CreateComponent implements OnInit {
     private readonly FONT_SIZE = 40;
     private readonly LINE_HEIGHT = 60;
 
-    private text = "";
+    private text = "clay";
     private context: CanvasRenderingContext2D;
     private canvas: HTMLCanvasElement;
 
@@ -40,6 +40,7 @@ export class CreateComponent implements OnInit {
     onInputUpdate( value: string ) {
         this.text = value;
         this.renderCanvas();
+        this.particles.refall();
     }
 
     private renderCanvas() {
@@ -65,6 +66,7 @@ const VELOCITY = `
 
     const vec3 gravity = vec3( 0, -9.0, 0 );
     const vec4 noChange = vec4( vec3( 0 ), 1 );
+    const vec3 maxSpeed = vec3( 0, -250.0, 0 );
 
     float not( float value ) {
         return 1.0 - value;
@@ -98,9 +100,8 @@ const VELOCITY = `
         float isUntouched = float( length( velocity ) == 0.0 );
         float isWithinMouse = float( distance( position.xy, mouse ) < 20.0 );
 
-        float isFrozen = and( isUntouched, isOnText );
         float shouldDrop = or( not( isUntouched ), isWithinMouse );
-        vec4 dropping = vec4( velocity + gravity, 1 );
+        vec4 dropping = vec4( max( velocity + gravity, maxSpeed ), 1 );
 
         gl_FragColor = ifElse(
             isOnText,

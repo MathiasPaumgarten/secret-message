@@ -37,6 +37,11 @@ export class FontTexture {
         this.texture.needsUpdate = true;
     }
 
+    clean() {
+        this.context.fillStyle = "rgba( 0, 0, 0, 1 )";
+        this.context.fillRect( 0, 0, this.SIZE, this.SIZE );
+        this.texture.needsUpdate = true;
+    }
 
     getTexture(): Texture {
         return this.texture;

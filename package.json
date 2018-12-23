@@ -2,9 +2,8 @@
   "name": "secret-message",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "dev": "ng serve",
+    "build": "ng build --prod --aot",
     "lint": "ng lint"
   },
   "private": true,

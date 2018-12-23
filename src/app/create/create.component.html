@@ -1,7 +1,8 @@
 <app-particles [velocity]="velocityShader"
                [width]="glWidth"
                [height]="glHeight"
-               message="shoes"></app-particles>
+               (click)="input.focus()"
+               [message]="text"></app-particles>
 
 <input #input
        class="hidden-input"

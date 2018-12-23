@@ -12,7 +12,7 @@ import {
 import { createTexture, ShaderPass } from "./shader-pass";
 
 // Incomplete list of possible uniform types.
-export type UniformValue = number | [ number, number ] | Texture;
+export type UniformValue = number | [ number, number ] | Texture | boolean;
 
 export interface ParticlesOptions {
     positionShader: string;
